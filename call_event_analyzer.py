@@ -1,3 +1,5 @@
+from collections import deque
+
 '''
 This project analyzes call events to identify suspicious call behavior based on the duration of the calls. 
 It processes call and hangup events to calculate the average call duration for each caller 
@@ -30,8 +32,11 @@ class Hangup(CallEvent):
 
 # Read call events from file and split them into call and hangup events.
 def readData(filename):
-    call_list = []
-    hangup_list = []
+    '''
+    Initialize a list to store call events and a dictionary to store hangup events.
+    '''
+    calls = []
+    hangups = {}
     
     f = open(filename, "r")
     for line in f:
@@ -41,48 +46,67 @@ def readData(filename):
             All the integers are long in Python3,
             so we can use int() to convert a string to long here.
             '''
-            call_list.append(Call(parts[1], parts[2], int(parts[3])))
+            curr_call = Call(parts[1], parts[2], int(parts[3]))
+            calls.append(curr_call)
         elif parts[0] == "hangup":
-            hangup_list.append(Hangup(parts[1], parts[2], int(parts[3])))
+            curr_hangup = Hangup(parts[1], parts[2], int(parts[3]))
+            curr_hangup_key = (curr_hangup._from, curr_hangup._to)
+            alternative_hangup_key = (curr_hangup._to, curr_hangup._from)
+            if curr_hangup_key not in hangups:
+                q = deque()
+                q.append(curr_hangup)
+                hangups[curr_hangup_key] = q
+            else:
+                hangups[curr_hangup_key].append(curr_hangup)
+            '''
+            Create a mirror hangup event for the other direction.
+            '''
+            hangups[alternative_hangup_key] = hangups[curr_hangup_key]
         else:
             print("Invalid input")
     f.close()
     
-    return call_list, hangup_list
+    return calls, hangups
 
 # Get call durations for each caller.
-def get_caller_call_durations(call_list, hangup_list):
+def get_caller_call_durations(calls, hangups):
     caller_call_durations = {}
-    for call in call_list:
-        caller = call._from
-        for i, hangup in enumerate(hangup_list):
-            if caller == hangup._from or caller == hangup._to:
-                call_duration = hangup.timestamp - call.timestamp
-                
-                if caller not in caller_call_durations:
-                    caller_call_durations[caller] = [call_duration]
-                else:
-                    caller_call_durations[caller].append(call_duration)
-                    
-                del hangup_list[i]
-                break
+    
+    for curr_call in calls:
+        curr_hangup_key = (curr_call._from, curr_call._to)
+        if curr_hangup_key not in hangups:
+            continue
+        
+        '''
+        Pop the first hangup event from the queue for the current call.
+        '''
+        curr_hangup = hangups[curr_hangup_key].popleft()
+        curr_call_duration = curr_hangup.timestamp - curr_call.timestamp
+        curr_caller = curr_call._from
+        
+        if curr_caller not in caller_call_durations:
+            caller_call_durations[curr_caller] = [curr_call_duration]
+        else:
+            caller_call_durations[curr_caller].append(curr_call_duration)
             
     return caller_call_durations
 
 # Get suspects who have average call duration less than 5 minutes.
-def get_suspects(caller_call_durations):
-    suspects = []
+def get_suspicious_callers(caller_call_durations):
+    suspicious_callers = []
     for caller, call_durations in caller_call_durations.items():
-        if sum(call_durations) / len(call_durations) < 5:
-            suspects.append(caller)
+        if (sum(call_durations) / len(call_durations)) < 5:
+            suspicious_callers.append(caller)
     
-    return suspects
+    return suspicious_callers
 
 def main():
-    call_list, hangup_list = readData("exampleInput.txt")
-    caller_call_durations = get_caller_call_durations(call_list, hangup_list)
-    suspects = get_suspects(caller_call_durations)
-    print(suspects)
+    filename = input("Please enter the name of the data file (e.g. exampleInput.txt):")
+    calls, hangups = readData(filename)
+    caller_call_durations = get_caller_call_durations(calls, hangups)
+    suspicious_callers = get_suspicious_callers(caller_call_durations)
+    print("The list of suspicious callers is as follows.")
+    print(suspicious_callers)
     
 if __name__ == '__main__':
     main()
