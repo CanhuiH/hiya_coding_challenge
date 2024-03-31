@@ -101,7 +101,7 @@ def get_suspicious_callers(caller_call_durations):
     return suspicious_callers
 
 def main():
-    filename = input("Please enter the name of the data file (e.g. exampleInput.txt):")
+    filename = input("Please enter the name of the data file (e.g. exampleInput.txt): ")
     calls, hangups = readData(filename)
     caller_call_durations = get_caller_call_durations(calls, hangups)
     suspicious_callers = get_suspicious_callers(caller_call_durations)

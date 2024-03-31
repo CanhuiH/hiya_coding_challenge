@@ -20,6 +20,9 @@ Assume the folder's directory is on the desktop.
 cd desktop
 cd hiya_coding_challenge 
 python call_event_analyzer.py
+Please enter the name of the data file (e.g. exampleInput.txt): exampleInput.txt
+The list of suspicious callers is as follows.
+['Bob']
 ```
 
 ## License
