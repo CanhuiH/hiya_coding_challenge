@@ -1,4 +1,10 @@
 '''
+This project analyzes call events to identify suspicious call behavior based on the duration of the calls. 
+It processes call and hangup events to calculate the average call duration for each caller 
+and identifies suspects whose average call duration is under 5 seconds.
+'''
+
+'''
 CallEvent class represents a call event with the following attributes:
     _from (string): the person originating the event
     _to (string): the person receiving the event
