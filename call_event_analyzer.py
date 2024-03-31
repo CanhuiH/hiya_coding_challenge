@@ -1,5 +1,3 @@
-from collections import deque
-
 '''
 This project analyzes call events to identify suspicious call behavior based on the duration of the calls. 
 It processes call and hangup events to calculate the average call duration for each caller 
@@ -7,7 +5,27 @@ and identifies suspects whose average call duration is under 5 seconds.
 '''
 
 '''
-CallEvent class represents a call event with the following attributes:
+Assumptions:
+1. The call events and hang up events are consistent; that is, if there is a call event, there must be a corresponding hangup event.
+
+2. The format of call events data in the text file is as follows.
+call Bob Alice 1711132463
+call Carl Doug 1711132465
+hangup Alice Bob 1711132467
+call Ed Frank 1711132481
+hangup Carl Doug 1711132482
+call Bob Doug 1711132483
+hangup Doug Bob 1711132484
+hangup Ed Frank 1711132501
+
+3. Each users at most has one communication in a period; 
+that is, a user cannot call others or receive another call when the user is in a communication.
+'''
+
+from collections import deque
+
+'''
+CallEvent class represents a telecommunication with the following attributes:
     _from (string): the person originating the event
     _to (string): the person receiving the event
     timestamp (long): seconds since the beginning of the Unix epoch
