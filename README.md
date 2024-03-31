@@ -19,8 +19,7 @@ Assume the folder's directory is on the desktop.
 ```bash
 cd desktop
 cd hiya_coding_challenge 
-cd coding_challenge
-python coding_challenge.py
+python call_event_analyzer.py
 ```
 
 ## License
